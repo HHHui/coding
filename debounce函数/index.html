@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="debounce.js"></script>
+    <script src="node_modules/lodash/lodash.js"></script>
+    <title>debounce~</title>
+</head>
+<body>
+    <button id="btn">debounce1</button>
+    <button id="lodashBtn">lodash debounce</button>
+
+    <button id="myleadingBtn">leading debounce</button>
+    <button id="leadingWithTrailing">leading debouce with trailing function</button>
+    <button id="final">final</button>
+    <script>
+        let $ = document.getElementById.bind(document);
+        let log = console.log.bind(console);
+        let btn = $('btn');
+        let lodashBtn = $('lodashBtn');
+        let myleadingBtn = $('myleadingBtn');
+        let leadingWithTrailing = $('leadingWithTrailing');
+        let final = $('final')
+
+        function search(data){
+            console.log(`i'm search ${data}...`);
+        }
+
+        var lodashSearch = _.debounce(search, 1000, {leading: true});
+        var de1Search = debounce1(search, 1000);
+        var de2Search = debounce2(search, 1000);
+        var de3Search = debounce3(search, 1000, {trailing: true});
+        var debounce = debounce(search, 1000, {leading: true, trailing: true});
+
+        btn.addEventListener('click', function(){
+            de1Search('what');
+        })
+
+        lodashBtn.addEventListener('click', function(){
+            lodashSearch('lodash')
+        })
+
+        myleadingBtn.addEventListener('click', function(){
+            de2Search()
+        })
+
+        leadingWithTrailing.addEventListener('click', function(){
+            de3Search()
+        })
+
+        final.addEventListener('click', function(){
+            debounce('final')
+        })
+    </script>
+</body>
+</html>
