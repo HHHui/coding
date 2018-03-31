@@ -11,6 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "babel-traverse": "^6.26.0",
-    "babylon": "^6.18.0"
+    "babylon": "^6.18.0",
+    "fs-extra": "^5.0.0",
+    "klaw": "^2.1.1"
   }
 }
