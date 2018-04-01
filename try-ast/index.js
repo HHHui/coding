@@ -87,7 +87,7 @@ function getActionCreatorNodes(filename){
 //         }
 //     },
 // ]
-export default function diff(oldDir, newDir){
+function diff(oldDir, newDir){
     function getAllFiles(dir){
         return new Promise((resolve, reject) => {
             let items = [];
@@ -110,7 +110,7 @@ export default function diff(oldDir, newDir){
             })
     }
 
-    Promise.all([
+    return Promise.all([
         getAllFiles(oldDir),
         getAllFiles(newDir)
     ]).then(dirs => {
@@ -134,9 +134,9 @@ export default function diff(oldDir, newDir){
     }).then(result => _.filter(result, (endpoint) => {
         // 这里可以找出新增，删除，还有修改的接口，但是新增和修改暂时不考虑
         // !endpoint.old || !endpoint.new ||
-        return endpoint.old.name !== endpoint.new.name;
+        return endpoint.old && endpoint.new && (endpoint.old.name !== endpoint.new.name)
     }))
-    // .then(res => console.log(JSON.stringify(res)))
 }
 
-// diff('old', 'new')
+diff('old', 'new')
+    .then(res => fs.writeFile(path.resolve('result.json'), JSON.stringify(res)))

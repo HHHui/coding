@@ -5,3 +5,11 @@ export const newnewnew = makeActionCreator(({ body, ...res }) => ({
     body,
     ...res,
 }));
+
+export const oldoldoldnew = makeActionCreator(({ body, ...res }) => ({
+    type: OLD_OLD_OLD,
+    method: 'old',
+    url: 'old',
+    body,
+    ...res,
+}));
