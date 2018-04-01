@@ -22,7 +22,7 @@ export const getTodo1 = makeActionCreator(({ body, ...res }) => ({
 }));
 
 
-export const addTodo1 = makeActionCreator(({ body, ...res }) => ({
+export const addTodo = makeActionCreator(({ body, ...res }) => ({
     type: ADD_TODO,
     method: 'post',
     url: 'todo',

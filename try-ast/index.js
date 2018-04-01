@@ -3,7 +3,26 @@ let path = require('path');
 let babylon = require('babylon');
 let traverse = require("babel-traverse").default;
 let klaw = require("klaw");
+let _ = require('lodash');
 
+// { 'get/todo':
+//    Node {
+//      type: 'Identifier',
+//      start: 389,
+//      end: 397,
+//      loc: SourceLocation { start: [Object], end: [Object], identifierName: 'getTodo1' },
+//      name: 'getTodo1',
+//      filePath: 'new/Todo.js' },
+//   'post/todo':
+//    Node {
+//      type: 'Identifier',
+//      start: 550,
+//      end: 557,
+//      loc: SourceLocation { start: [Object], end: [Object], identifierName: 'addTodo' },
+//      name: 'addTodo',
+//      filePath: 'new/Todo.js' } 
+// }
+// getActionCreatorNodes，输入swagger生成的文件，输出其中的actionCreatorNode
 function getActionCreatorNodes(filename){
     let promise = new Promise(function(resolve, reject){
         fs.readFile(path.resolve(filename), "utf8", (error, content) => {
@@ -24,7 +43,7 @@ function getActionCreatorNodes(filename){
                 enter: function(path) {
                     if(path.node.name === 'makeActionCreator' && path.key === "callee"){
                         let pNode = path.context.parentPath.parent.id;
-                        // let actionCreatorName = pNode.name;
+                        pNode.filePath = filename;
                         let method, url;
                         path.container.arguments[0].body.properties.forEach(prop => {
                             if(prop.type === 'SpreadProperty') return;
@@ -44,11 +63,31 @@ function getActionCreatorNodes(filename){
     });
     return promise;
 }
-
-// getActionCreatorNames('new/Todo.js')
+// getActionCreatorNodes('new/Todo.js')
     // .then(data => console.log(data))
 
-function diff(oldDir, newDir){
+// diff函数, 输入旧目录，新目录，输出为以下格式。
+// [
+//     {
+//         "old": {
+//             "type": "Identifier",
+//             "start": 389,
+//             "end": 396,
+//             "loc": {},
+//             "name": "getTodo",
+//             "filePath": "C:\\Users\\Cabage\\Desktop\\Code\\demos\\try-ast\\old\\Todo.js"
+//         },
+//         "new": {
+//             "type": "Identifier",
+//             "start": 389,
+//             "end": 397,
+//             "loc": {},
+//             "name": "getTodo1",
+//             "filePath": "C:\\Users\\Cabage\\Desktop\\Code\\demos\\try-ast\\new\\Todo.js"
+//         }
+//     },
+// ]
+export default function diff(oldDir, newDir){
     function getAllFiles(dir){
         return new Promise((resolve, reject) => {
             let items = [];
@@ -91,8 +130,13 @@ function diff(oldDir, newDir){
                 result[key] = { new: n[key] }
             }
         })
-        console.log(JSON.stringify(result))
-    })
+        return result;
+    }).then(result => _.filter(result, (endpoint) => {
+        // 这里可以找出新增，删除，还有修改的接口，但是新增和修改暂时不考虑
+        // !endpoint.old || !endpoint.new ||
+        return endpoint.old.name !== endpoint.new.name;
+    }))
+    // .then(res => console.log(JSON.stringify(res)))
 }
 
-diff('old', 'new')
+// diff('old', 'new')
