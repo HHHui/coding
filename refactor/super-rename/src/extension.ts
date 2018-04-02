@@ -16,23 +16,33 @@ export function activate(context: vscode.ExtensionContext) {
     // Now provide the implementation of the command with  registerCommand
     // The commandId parameter must match the command field in package.json
     let disposable = vscode.commands.registerCommand('extension.sayHello', async() => {
-        diffs.forEach(({old: o, new: n}) => {
+        let i = 0;
+        function step() {
+            if(i >= diffs.length) return;
+            let {old: o, new: n} = diffs[i];
             vscode.commands.executeCommand('vscode.open', Uri.file(o.filePath))
-                .then(() => {
-                    // -1,+1 可能是因为babylon parser和vscode的index从0或1开始的区别，这里随便凑了一下
-                    vscode.commands.executeCommand('vscode.executeDocumentRenameProvider',
-                        Uri.file(o.filePath),
-                        new vscode.Position(o.loc.start.line - 1, o.loc.start.column),
-                    n.name)
-                    .then(edit => {
-                        if (!edit) {
-                            return false;
-                        }
-                        return vscode.workspace.applyEdit(edit);
-                    })
+            .then(() => {
+                // -1,+1 可能是因为babylon parser和vscode的index从0或1开始的区别，这里随便凑了一下
+                vscode.commands.executeCommand('vscode.executeDocumentRenameProvider',
+                    Uri.file(o.filePath),
+                    new vscode.Position(o.loc.start.line - 1, o.loc.start.column),
+                n.name)
+                .then(edit => {
+                    if (!edit) {
+                        console.log('!edit return~');
+                        return false;
+                    }
+                    return vscode.workspace.applyEdit(edit);
                 })
-        })
-        vscode.window.showInformationMessage('Finished');
+                .then(() => {
+                    setTimeout(() => {
+                        i++;
+                        step()
+                    }, 200);
+                })
+            })
+        }
+        step();
     });
 
     context.subscriptions.push(disposable);

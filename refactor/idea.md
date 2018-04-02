@@ -33,4 +33,8 @@ https://medium.com/@jotadeveloper/abstract-syntax-trees-on-javascript-534e33361f
 }
 9，下一步就是将obj导入extension，开始测试了~
 10, 测试中遇到一个问题,“rejected promise not handled within 1 second”， extension里的promise默认1s内没有完成就会被强制reject掉。
-11. 发现一个问题，发现虽然rename调用成功了，但是并没有进行全局重构，发现加上jsconfig就好了。
+
+<!-- 11. 发现一个问题，发现虽然rename调用成功了，但是并没有进行全局重构，发现加上jsconfig就好了。 -->
+10.5 完善了index.js，已经可以成功生成所有文件的diff了。 
+11. rename symbol很不稳定，比如刚打开编辑器直接跑，一般都会失败，或者action creator的名字改了，但是引用的名字没有改。但是打开浏览器等一会再跑(demo)，就可以成功全局修改。似乎VScode的IntellSense插件读取项目有关？（有点没头绪)
+12. All finished~ 可以通过settimeout来让async变成sync来解决异步IO错误！！！我真是他妈的天才

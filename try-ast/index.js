@@ -114,6 +114,9 @@ function getActionCreatorNodes(filename){
 function diff(oldDir, newDir){
     function getAllFiles(dir){
         return new Promise((resolve, reject) => {
+            if(fs.lstatSync(path.resolve(dir)).isFile()){
+                resolve([path.resolve(dir)])
+            }
             let items = [];
             klaw(path.resolve(dir))
                 .on('data', (item) => {
@@ -163,5 +166,5 @@ function diff(oldDir, newDir){
     }))
 }
 
-diff('oldFolder', 'newFolder')
+diff('/Users/huizhang/Code/creams-web2/app/redux/modules/swaggerGen', '/Users/huizhang/Code/creams-web2/genCode/swaggerGenNew')
     .then(res => fs.writeFile(path.resolve('result.json'), JSON.stringify(res)))
