@@ -24,12 +24,22 @@ let _ = require('lodash');
 // }
 // getActionCreatorNodes，输入swagger生成的文件，输出其中的actionCreatorNode
 function getActionCreatorNodes(filename){
+
+    function resolveTemplateLiteralToString(Node){
+        let str = '';
+        for(let i = 0, j = 0; i < Node.quasis.length; i++){
+            let k = Node.quasis[i];
+            str += k.value.raw ? k.value.raw : Node.expressions[j++].name;
+        }
+        return str;
+    }
+
     let promise = new Promise(function(resolve, reject){
         fs.readFile(path.resolve(filename), "utf8", (error, content) => {
             if(error) {
                 console.log(error)
             }
-        
+            
             let ast = babylon.parse(content, {
                 sourceType: 'module',
                 plugins: [
@@ -43,6 +53,7 @@ function getActionCreatorNodes(filename){
                 enter: function(path) {
                     if(path.node.name === 'makeActionCreator' && path.key === "callee"){
                         let pNode = path.context.parentPath.parent.id;
+                        // 为什么debug访问不了pNode?
                         pNode.filePath = filename;
                         let method, url;
                         path.container.arguments[0].body.properties.forEach(prop => {
@@ -50,7 +61,20 @@ function getActionCreatorNodes(filename){
                             if(prop.key.name === 'method'){
                                 method = prop.value.value;
                             } else if(prop.key.name === 'url') {
-                                url = prop.value.value;
+                                // url: 'account'
+                                // url: queryToUrl('account', query)
+                                if(prop.value.type === 'StringLiteral') {
+                                    url = prop.value.value;
+                                } else if(prop.value.type === 'CallExpression') {
+                                    let arg0 = prop.value.arguments[0]; //queryToUrl('xxx' = StringLiteral, query)  queryToUrl(${} = TemplateLiteral, query)
+                                    if(arg0.type === 'StringLiteral'){
+                                        url = arg0.value;
+                                    } else if(arg0.type === 'TemplateLiteral') {
+                                        url = resolveTemplateLiteralToString(arg0);
+                                    }
+                                } else if(prop.value.type === 'TemplateLiteral') {
+                                    url = resolveTemplateLiteralToString(prop.value);
+                                }
                             }
                         })
                         ret[method + '/' + url] = pNode;
@@ -93,7 +117,8 @@ function diff(oldDir, newDir){
             let items = [];
             klaw(path.resolve(dir))
                 .on('data', (item) => {
-                    if(item.stats.isFile()){
+                    // 去除index.js, babylon会报错
+                    if(item.stats.isFile() && path.basename(item.path) !== 'index.js'){
                         items.push(item.path)
                     }
                 })
@@ -111,8 +136,8 @@ function diff(oldDir, newDir){
     }
 
     return Promise.all([
-        getAllFiles(oldDir),
-        getAllFiles(newDir)
+        getAllFiles(path.resolve(oldDir)),
+        getAllFiles(path.resolve(newDir))
     ]).then(dirs => {
         let [oldFiles, newFiles] = dirs;
         return Promise.all([
@@ -138,5 +163,5 @@ function diff(oldDir, newDir){
     }))
 }
 
-diff('old', 'new')
+diff('oldFolder', 'newFolder')
     .then(res => fs.writeFile(path.resolve('result.json'), JSON.stringify(res)))
