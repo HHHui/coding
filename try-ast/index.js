@@ -259,7 +259,7 @@ function getStateDiff(oldDir, newDir) {
 function collectConnectInfos(dir) {
   return getAllFiles(path.resolve(dir))
     .then(filepaths => {
-      return filepaths.filter(filepath => path.extname(filepath) === ".jsx");
+      return filepaths.filter(filepath => path.extname(filepath) === ".jsx" || path.extname(filepath) === ".js");
     })
     .then(jsxes => {
       let promises = [];
@@ -280,37 +280,29 @@ function collectConnectInfos(dir) {
                   // 'exportDefaultFrom', 这个插件不起作用~
                 ]
               });
+              
               traverse(ast, {
                 enter: function(path) {
+                  // if(path.node.type === "MemberExpression")
+                  //   if(path.node.object.type === "MemberExpression")
+                  //     if(path.node.object.property.type === 'Identifier')
+                  //       if(path.node.object.property.name.indexOf("BySwaggerGen") !== -1)
+                  //         console.log(path.node.property.name)
                   if (
-                    path.node.type === "Decorator" &&
-                    path.node.expression.callee &&
-                    path.node.expression.callee.name === "connect"
+                      path.node.type === "MemberExpression" &&
+                      path.node.object.type === "MemberExpression" &&
+                      path.node.object.property.type === 'Identifier' &&
+                      path.node.object.property.name.indexOf("BySwaggerGen") !== -1 
                   ) {
-                    //@connect(mapStateToProps, mapActionToProps)
-                    // get first argument
-                    let mapStateToProps = path.node.expression.arguments[0];
-                    if (mapStateToProps.type === "ArrowFunctionExpression") {
-                      // @connect( state => ({a: state.ui.showsidebar }))
-                      mapStateToProps.body.properties.forEach(prop => {
-                        let v = prop.value;
-                        if (
-                          v.type === "MemberExpression" &&
-                          v.object.object &&
-                          !v.object.object.object &&
-                          v.object.property.name.indexOf("BySwaggerGen") !== -1
-                        ) {
-                          let level3Node = v.property;
-                          level3Node.filepath = jsx;
-                          collectInfo.push(level3Node);
-                        }
-                      });
-                    }
+                    let level3Node = path.node.property;
+                    level3Node.filepath = jsx;
+                    collectInfo.push(level3Node);
                   }
                 }
               });
               return collectInfo;
             } catch (error) {
+              console.log(`${jsx} 报错啦`)
               //export default from 插件会报错，但是都是一些index用到，所以忽略算了。
               return [];
             }
@@ -426,8 +418,9 @@ function actionCreatorNameDiffToMap() {
   // .then((ret) => fs.writeFile(path.resolve("actionCreatorCall.json"), JSON.stringify(ret)));
 
 
-// getStateDiff('/Users/huizhang/Code/creams-web2/genCode/swaggerGen', '/Users/huizhang/Code/creams-web2/genCode/swaggerGenNew')
+getStateDiff('/Users/huizhang/Code/creams-web2/genCode/swaggerGen', '/Users/huizhang/Code/creams-web2/genCode/swaggerGenNew')
 
 // collectConnectInfos(`/Users/huizhang/Code/creams-web2/app`)
-collectConnectInfos(`/Users/huizhang/Code/coding/try-ast/mapStateToProps`)
-  .then((ret) => fs.writeFile(path.resolve("collect.json"), JSON.stringify(ret)));
+//   .then((ret) => fs.writeFile(path.resolve("collect.json"), JSON.stringify(ret)));
+// collectConnectInfos(`/Users/huizhang/Code/coding/try-ast/mapStateToProps`)
+//   .then(console.log);
