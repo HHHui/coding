@@ -4,12 +4,12 @@
 import * as vscode from 'vscode';
 import {Uri} from 'vscode'
 
-import actionCreatorNameDiff from './actionCreatorNameDiff'
-import actionCreatorNameDiffMap from './actionCreatorNameDiffMap'
-import actionCreatorCall from './actionCreatorCall'
+import actionCreatorNameDiff from './temp/actionCreatorNameDiff'
+import actionCreatorNameDiffMap from './temp/actionCreatorNameDiffMap'
+import actionCreatorCall from './temp/actionCreatorCall'
 
-import stateDiff from './stateDiff'
-import stateNeedtoChange from './collect'
+import stateDiff from './temp/stateDiff'
+import stateNeedtoChange from './temp/collect'
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed

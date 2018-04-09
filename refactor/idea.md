@@ -38,3 +38,8 @@ https://medium.com/@jotadeveloper/abstract-syntax-trees-on-javascript-534e33361f
 10.5 完善了index.js，已经可以成功生成所有文件的diff了。 
 11. rename symbol很不稳定，比如刚打开编辑器直接跑，一般都会失败，或者action creator的名字改了，但是引用的名字没有改。但是打开浏览器等一会再跑(demo)，就可以成功全局修改。似乎VScode的IntellSense插件读取项目有关？（有点没头绪)
 12. All finished~ 可以通过settimeout来让async变成sync来解决异步IO错误！！！我真是他妈的天才
+13. 才发现mapStateToProps也是绑定的方法名，改成了和actionCreator name一样。
+14. 用AST生成相应的meta data，没什么技术含量，而且依赖于Object.keys()生成的key是有顺序的，（虽然理论上是没顺序的）
+15. 还剩最后的迭代，因为前段后端一直在update，所以常常发现冲突。不过想了一下可以迭代一下方法来搞定
+假设后台没改方法名，我们重新SwaggerGEN，然后将新生成的gen文件复制进redux目录，理论上npm start启动应该是没问题的。（如果有问题，说明前端或者后端又有人改出问题了）。然后使用新的template重新生成SwaggerGEN目录，然后生成meta，跑extension，这一步如果出问题，那就是state name有问题，action creator前一次已经测试过了。
+16. 开始实际操作，老template生成新后端的SwaggerGen，复制到redux下，两个问题，1. 嵌套目录path加上../ 2. 老的SwaggerGen/index.js PropertyBySwaggerGenV2是错误的，但是不影响后续操作，所以将错就错，将生成的SwaggerGen的index.js中的PropertyContractsv2BySwaggerGen改成PropertyBySwaggerGenV2。这样能启动，但是跑起来console里有不少error.比如刚登陆 `Property `columns` of component `Connect(Table)` has invalid PropType notation inside arrayOf`.
