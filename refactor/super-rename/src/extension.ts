@@ -3,14 +3,14 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import {Uri} from 'vscode'
-
+import * as fs from 'fs';
+import * as path from 'path';
 import actionCreatorNameDiff from './temp/actionCreatorNameDiff'
 import actionCreatorNameDiffMap from './temp/actionCreatorNameDiffMap'
 import actionCreatorCall from './temp/actionCreatorCall'
 
 import stateDiff from './temp/stateDiff'
 import stateNeedtoChange from './temp/collect'
-
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -47,60 +47,96 @@ export function activate(context: vscode.ExtensionContext) {
         //     })
         // }
         // step();
-
+        
+        // let lastFile = '', lastline = -1, offset = 0;
+        // let error = {};
         // function changeActionCreatorCall(i:number){
-        //     if(i >= actionCreatorCall.length) return;
+        //     if(i >= actionCreatorCall.length) {
+        //         fs.writeFile(path.resolve("/Users/huizhang/actonCreatorError.json"), JSON.stringify(error));
+        //         return 
+        //     };
         //     let state = actionCreatorCall[i];
+        //     if(state.loc.start.line !== lastline || state.filepath !== lastFile){
+        //         offset = 0;
+        //     }
+        //     lastline = state.loc.start.line;
+        //     lastFile = state.filepath;
         //     vscode.commands.executeCommand('vscode.open', Uri.file(state.filepath))
         //         .then(() => {
         //             let editor = vscode.window.activeTextEditor;
         //             if(editor){
         //                 editor.edit(function cb(edit){
+        //                     if(!actionCreatorNameDiffMap[state.name]) {
+        //                         if(error[state.name]){
+        //                             error[state.name].push(actionCreatorCall[i])
+        //                         } else {
+        //                             error[state.name] = [actionCreatorCall[i]]
+        //                         }
+        //                         return;
+        //                     }
         //                     edit.replace(new vscode.Range(
-        //                         new vscode.Position(state.loc.start.line - 1, state.loc.start.column),
-        //                         new vscode.Position(state.loc.end.line - 1, state.loc.end.column),
+        //                         new vscode.Position(state.loc.start.line - 1, state.loc.start.column + offset),
+        //                         new vscode.Position(state.loc.end.line - 1, state.loc.end.column + offset),
         //                     ), actionCreatorNameDiffMap[state.name]);
+        //                     offset = offset + actionCreatorNameDiffMap[state.name].length - state.name.length;
         //                 })
         //             }
         //         })
         //         .then(() => {
         //             setTimeout(() => {
         //                 changeActionCreatorCall(++i)
-        //             }, 100);
+        //             }, 300);
         //         })
-            
+        //         .catch((error) => {
+        //             console.log(error)
+        //         })
         // }
         // changeActionCreatorCall(0);
         
-        let lastDate = new Date();
-        function changeStateName(i:number){
-            if(i >= stateNeedtoChange.length) return;
+        let lastFile = '', lastline = -1, offset = 0;
+        let error = {};
+        function changeActionCreatorCall(i:number){
+            if(i >= stateNeedtoChange.length){
+                fs.writeFile(path.resolve("/Users/huizhang/stateError.json"), JSON.stringify(error));
+                return;
+            } 
             let state = stateNeedtoChange[i];
+            if(state.loc.start.line !== lastline || state.filepath !== lastFile){
+                offset = 0;
+            }
+            lastline = state.loc.start.line;
+            lastFile = state.filepath;
             vscode.commands.executeCommand('vscode.open', Uri.file(state.filepath))
                 .then(() => {
                     let editor = vscode.window.activeTextEditor;
                     if(editor){
                         editor.edit(function cb(edit){
-                            console.log(`${state.name}:${stateDiff[state.name]}`)
+                            if(!stateDiff[state.name]) {
+                                if(error[state.name]){
+                                    error[state.name].push(stateNeedtoChange[i])
+                                } else {
+                                    error[state.name] = [stateNeedtoChange[i]]
+                                }
+                                return;
+                            }
                             edit.replace(new vscode.Range(
-                                new vscode.Position(state.loc.start.line - 1, state.loc.start.column),
-                                new vscode.Position(state.loc.end.line - 1, state.loc.end.column),
+                                new vscode.Position(state.loc.start.line - 1, state.loc.start.column + offset),
+                                new vscode.Position(state.loc.end.line - 1, state.loc.end.column + offset),
                             ), stateDiff[state.name]);
-                        })
-                        .then((value) => {
-                            console.log(`edit could be applied? ${value}`)
-                            setTimeout(() => {
-                                let current = new Date();
-                                console.log(current.getTime() - lastDate.getTime());
-                                lastDate = current;
-                                changeStateName(++i)
-                            }, 800);
+                            offset = offset + stateDiff[state.name].length - state.name.length;
                         })
                     }
                 })
-            
+                .then(() => {
+                    setTimeout(() => {
+                        changeActionCreatorCall(++i)
+                    }, 300);
+                })
+                .catch((error) => {
+                    console.log(error)
+                })
         }
-        changeStateName(0);
+        changeActionCreatorCall(0);
     });
 
     context.subscriptions.push(disposable);

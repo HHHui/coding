@@ -165,12 +165,12 @@ function diff(oldDir, newDir) {
         // !endpoint.old || !endpoint.new ||
         return (
           endpoint.old &&
-          endpoint.new &&
-          endpoint.old.name !== endpoint.new.name
+          endpoint.new 
+          // endpoint.old.name !== endpoint.new.name
         );
       })
     );
-}
+  }
 
 // 上面是处理actionCreator name的
 // 下面是为了处理state name的
@@ -250,7 +250,7 @@ function getStateDiff(oldDir, newDir) {
         for (let i = 0; i < oldState.length; i++) {
           ret[oldState[i]] = newState[i];
         }
-        fs.writeFile(path.resolve("stateDiff.json"), JSON.stringify(ret));
+        fs.writeFile(path.resolve("./temp/stateDiff.json"), JSON.stringify(ret));
       });
     });
 }
@@ -292,7 +292,8 @@ function collectConnectInfos(dir) {
                       path.node.type === "MemberExpression" &&
                       path.node.object.type === "MemberExpression" &&
                       path.node.object.property.type === 'Identifier' &&
-                      path.node.object.property.name.indexOf("BySwaggerGen") !== -1 
+                      path.node.object.property.name.indexOf("SwaggerGen") !== -1 
+                      // path.node.object.property.name.indexOf("TemplateSwaggerGen") !== -1 
                   ) {
                     let level3Node = path.node.property;
                     level3Node.filepath = jsx;
@@ -346,7 +347,7 @@ function collectActionCreatorCall(dir) {
                 // 'exportDefaultFrom', 这个插件不起作用~
               ]
             });
-            
+            fs.writeFile(path.resolve("./temp/ast.json"), JSON.stringify(ast))
             traverse(ast, {
               enter: function(path) {
                 if (
@@ -359,14 +360,16 @@ function collectActionCreatorCall(dir) {
                 }
 
                 if (
-                  path.node.type === 'ExpressionStatement' &&
-                  path.node.expression.type === 'CallExpression' &&
-                  path.node.expression.callee.type === 'MemberExpression' &&
-                  importedActionCreator.indexOf(path.node.expression.callee.property.name) !== -1
+                  path.node.type === 'Identifier' &&
+                  importedActionCreator.indexOf(path.node.name) !== -1
                 ) {
-                  let node = path.node.expression.callee.property;
-                  node.filepath = jsx;
-                  actionCreatorCallNode.push(node);
+                  const lastNode = actionCreatorCallNode[actionCreatorCallNode.length -1];
+                  let node = path.node;
+                  let alreadyHas = lastNode && lastNode.start === node.start;
+                  if(!alreadyHas){
+                    node.filepath = jsx;
+                    actionCreatorCallNode.push(node);
+                  }
                 }
               }
             });
@@ -395,11 +398,15 @@ function collectActionCreatorCall(dir) {
 function actionCreatorNameDiffToMap() {
   let result = {};
   return fs
-    .readFile('./actionCreatorNameDiff.json', "utf8")
+    .readFile('./temp/actionCreatorNameDiff.json', "utf8")
     .then(JSON.parse)
     .then(arr => {
       arr.forEach(change => {
-        if(result[change.old.name]) {console.log("actionCreatorName有重复")}
+        if(result[change.old.name]) {
+          console.log("actionCreatorName重复", change.old.name)
+          console.log(change.old.filePath)
+          console.log(result[change.old.name])
+        }
         result[change.old.name] = change.new.name;
       })
       return result;
@@ -407,20 +414,17 @@ function actionCreatorNameDiffToMap() {
 }
 
 // get action creator diff
-// diff('/Users/huizhang/Code/creams-web2/app/redux/modules/swaggerGen', '/Users/huizhang/Code/creams-web2/genCode/swaggerGenNew')
-  // .then(res => fs.writeFile(path.resolve('actionCreatorNameDiff.json'), JSON.stringify(res)))
+// diff('/Users/huizhang/Code/creams-web2/genCode/swaggerGen', '/Users/huizhang/Code/creams-web2/genCode/swaggerGenNew')
+  // .then(res => fs.writeFile(path.resolve('./temp/actionCreatorNameDiff.json'), JSON.stringify(res)))
 
 // actionCreatorNameDiffToMap()
-  // .then((ret) => fs.writeFile(path.resolve("actionCreatorNameDiffMap.json"), JSON.stringify(ret)));
+  // .then((ret) => fs.writeFile(path.resolve("./temp/actionCreatorNameDiffMap.json"), JSON.stringify(ret)));
 
 // need to change this.props.getxxx() getxxx一样需要改。
 // collectActionCreatorCall('/Users/huizhang/Code/creams-web2/app')
-  // .then((ret) => fs.writeFile(path.resolve("actionCreatorCall.json"), JSON.stringify(ret)));
+  // .then((ret) => fs.writeFile(path.resolve("./temp/actionCreatorCall.json"), JSON.stringify(ret)));
 
+// getStateDiff('/Users/huizhang/Code/creams-web2/genCode/swaggerGen', '/Users/huizhang/Code/creams-web2/genCode/swaggerGenNew')
 
-getStateDiff('/Users/huizhang/Code/creams-web2/genCode/swaggerGen', '/Users/huizhang/Code/creams-web2/genCode/swaggerGenNew')
-
-// collectConnectInfos(`/Users/huizhang/Code/creams-web2/app`)
-//   .then((ret) => fs.writeFile(path.resolve("collect.json"), JSON.stringify(ret)));
-// collectConnectInfos(`/Users/huizhang/Code/coding/try-ast/mapStateToProps`)
-//   .then(console.log);
+collectConnectInfos(`/Users/huizhang/Code/creams-web2/app`)
+  .then((ret) => fs.writeFile(path.resolve("./temp/collect.json"), JSON.stringify(ret)));
