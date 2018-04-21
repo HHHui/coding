@@ -1,4 +1,4 @@
-<!-- 后台方法重名,导致action creator改名,但前段没有及时修正 -->
+<!-- 后台方法重名,导致action creator改名,但前段没有及时修正 --> 以后没有了
 原来有个action creator叫
 getFindContracts11 { method:get , url: /contract/xx }  --->    对应后端方法名findContracts
 一段时间以后后端又多了一个方法名同样为findContracts
@@ -20,7 +20,7 @@ getFindContracts22 { method:get , url: /contract/xx }  => getContractXx
 2.  getCostContracts => getPropertyV2Contracts
 3.  postCostContracts => postPropertyV2Contracts
 
-<!-- API被换了TAG -->
+<!-- API被换了TAG --> 以后还有
 import { getCommonsIndustries } from 'redux/modules/swaggerGen/Common';
 变为
 import { getCommonsIndustries } from 'redux/modules/swaggerGen/BusinessCommon';
@@ -29,7 +29,7 @@ state.CommonBySwaggerGen.getCommonsIndustries
 变为
 state.BusinessCommonBySwaggerGen.getCommonsIndustries,
 
-<!-- swaggerGen/index.js 瞎几把命名 -->
+<!-- swaggerGen/index.js 瞎几把命名 --> 以后可能没有
 collect state info 本来是以BySwaggerGen为关键词的,没想到有人在index里加了个叫TemplateSwaggerGen的,导致全部漏掉了,以下是名单
 [
   {
@@ -125,7 +125,7 @@ collect state info 本来是以BySwaggerGen为关键词的,没想到有人在ind
   }
 ]
 
-<!-- building 查看详情 右侧栏出问题 -->
+<!-- building 查看详情 右侧栏出问题 --> 
 /Users/huizhang/Code/creams-web2/app/components/CrRight/BuildingRight/index.jsx
 /Users/huizhang/Code/creams-web2/app/components/CrRight/BuildingRight/components/buildingInfo.jsx
 这两个文件中的action creator都没有被修改.
@@ -136,6 +136,10 @@ collect state info 本来是以BySwaggerGen为关键词的,没想到有人在ind
 <!-- Tags相关API从Common转到了BusinessCommon -->
 /Users/huizhang/Code/creams-web2/app/containers/BodyTenantTag-Profile/components/Table.jsx
 /Users/huizhang/Code/creams-web2/app/containers/BodyRoomTag-Profile/components/Table.jsx
+
+<!-- selector.js 使用state的结构,没有被收集到 -->
+/Users/huizhang/Code/creams-web2/app/components/ReviewModal/components/HeaderInfo/selector.js
+直接使用了state, 改一下就Ok了
 
 <!-- 不属于本次修改的BUG -->
 1. 房源管理,可招商,点击房源详情,点右上角"编辑"出现 floorList.map is not a function
